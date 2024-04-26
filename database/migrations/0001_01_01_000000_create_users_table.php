@@ -14,11 +14,26 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->rememberToken();
+            $table->integer('age')->nullable();
+            $table->string('picture')->nullable(); // Assuming it's an URL or path to the image file
+            $table->string('location');
+            $table->integer('likes')->nullable(); // JSON field to store an array of likes
+            $table->integer('dislikes')->nullable(); // JSON field to store an array of dislikes
             $table->timestamps();
+        });
+
+        // Additional table for liked people list, which implies a many-to-many relationship
+        Schema::create('user_likes', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('liked_user_id')->constrained('users')->onDelete('cascade');
+            $table->timestamps();
+
+            $table->unique(['user_id', 'liked_user_id']); // Ensure each like relationship is unique
+        });
+
+        Schema::table('users', function (Blueprint $table) {
+            $table->timestamp('notified_for_sixty_likes')->nullable();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
@@ -42,6 +57,8 @@ return new class extends Migration
      */
     public function down(): void
     {
+
+        Schema::dropIfExists('user_likes');
         Schema::dropIfExists('users');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
